@@ -1,0 +1,82 @@
+\documentclass[11pt, a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+
+\title{\textbf{War \& the Shadow Economy}}
+\author{DERRAG Mariya}
+\date{March 2026}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This research investigates the relationship between armed conflict and the emergence of parallel shadow economies. Using a dataset of 100,000 conflict records (1939--2026), we demonstrate that war systematically redirects economic activity into a shadow system. Through linear regression, we establish that while war itself provides a structural baseline for informal growth, the currency black market gap serves as the primary measurable predictor of its magnitude.
+\end{abstract}
+
+\section{Introduction}
+Armed conflict is traditionally studied via GDP collapse and hyperinflation. This research approaches war as an \textit{economic transformation} that produces a parallel economy characterized by structural profitability. We seek to identify the factors determining the growth of the informal economy during conflict.
+
+\section{Data \& Methodology}
+The analysis utilizes the \textit{War Economic \& Livelihood Impact Dataset} ($N = 100,000$). The key constructed variable is:
+\begin{equation}
+    \Delta \text{IE} = \text{IE}_{\text{War}} - \text{IE}_{\text{Pre-War}}
+\end{equation}
+Where $\Delta \text{IE}$ represents the percentage point growth in the informal economy.
+
+\section{Results}
+\subsection{Uniformity of Black Market Activity}
+The distribution of black market intensity and goods is nearly uniform. Profiteering is documented in 70\% of all conflicts, regardless of region or conflict type.
+
+\subsection{Correlation Analysis}
+Traditional economic indicators show near-zero correlation with informal growth:
+\begin{itemize}
+    \item GDP Change: $r = +0.001$
+    \item Inflation Rate: $r = -0.000$
+    \item \textbf{Currency Black Market Gap: $r = +0.603$}
+\end{itemize}
+
+\section{Linear Regression Analysis}
+To quantify the relationship between currency distortions and shadow economy expansion, we employ a Simple Linear Regression (SLR) model.
+
+\subsection{Model Specification}
+The growth of the informal economy is modeled as:
+\begin{equation}
+    \text{IE\_Growth}_i = \beta_0 + \beta_1 (\text{Currency\_Gap}_i) + \epsilon_i
+\end{equation}
+
+\subsection{Estimated Regression Equation}
+Based on the OLS estimation, the predictive function is:
+\begin{equation}
+    \hat{y} = 19.39 + 0.0586x
+\end{equation}
+For every 1\% increase in the currency gap ($x$), the informal economy growth ($\hat{y}$) increases by 0.0586 percentage points. The intercept $\beta_0 = 19.39$ represents the structural baseline growth driven by the existence of war alone.
+
+\subsection{Statistical Diagnostics}
+\begin{table}[ht]
+\centering
+\caption{Regression Coefficients and Significance}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Variable} & \textbf{Estimate} & \textbf{Std. Error} & \textbf{t-value} & \textbf{Pr($>|t|$)} \\
+\midrule
+(Intercept) & 19.39 & 0.04927 & 393.5 & $< 2.2 \times 10^{-16}$ \\
+Currency Gap & 0.05861 & 0.0002453 & 239.0 & $< 2.2 \times 10^{-16}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{itemize}
+    \item \textbf{Fisher F-Test:} $F = 57,100$ ($p < 2.2 \times 10^{-16}$), indicating a highly significant model.
+    \item \textbf{Goodness of Fit:} $R^2 = 0.3635$. The model explains 36.4\% of the variance.
+    \item \textbf{Durbin-Watson:} $DW = 2.0008$, confirming no autocorrelation in residuals.
+\end{itemize}
+
+\section{Discussion \& Conclusion}
+War creates a replacement system immune to formal economic conditions. The currency black market gap is the only quantifiable predictor of this shift, yet the 19.39pp intercept suggests that shadow economies are a structural guarantee of armed conflict.
+
+\end{document}
