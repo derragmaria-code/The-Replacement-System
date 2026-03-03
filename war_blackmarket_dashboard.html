@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>War & the Shadow Economy</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --surface2: #1a1a1a;
+    --border: #2a2a2a;
+    --accent: #ff3b00;
+    --accent2: #ffaa00;
+    --accent3: #00e5ff;
+    --text: #e8e8e8;
+    --muted: #666;
+    --green: #00ff88;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Noise overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+
+  header {
+    padding: 60px 60px 40px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  header::after {
+    content: 'SHADOW';
+    position: absolute;
+    right: -20px;
+    top: -10px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 200px;
+    color: #ffffff04;
+    pointer-events: none;
+    letter-spacing: -5px;
+  }
+
+  .tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .tag::before {
+    content: '';
+    width: 20px;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(52px, 6vw, 96px);
+    line-height: 0.9;
+    letter-spacing: 2px;
+    color: #fff;
+  }
+
+  h1 span { color: var(--accent); }
+
+  .subtitle {
+    margin-top: 20px;
+    font-size: 14px;
+    color: var(--muted);
+    max-width: 500px;
+    line-height: 1.7;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .meta-row {
+    display: flex;
+    gap: 40px;
+    margin-top: 32px;
+    flex-wrap: wrap;
+  }
+
+  .meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .meta-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .meta-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--accent3);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 1px;
+    background: var(--border);
+    padding: 0;
+  }
+
+  .card {
+    background: var(--surface);
+    padding: 36px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-label::before {
+    content: '//';
+    color: var(--accent);
+  }
+
+  /* KPI cards */
+  .kpi-row {
+    grid-column: span 12;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border);
+  }
+
+  .kpi {
+    background: var(--surface);
+    padding: 36px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .kpi::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+  }
+
+  .kpi:nth-child(1)::after { background: var(--accent); }
+  .kpi:nth-child(2)::after { background: var(--accent2); }
+  .kpi:nth-child(3)::after { background: var(--accent3); }
+  .kpi:nth-child(4)::after { background: var(--green); }
+
+  .kpi-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 64px;
+    line-height: 1;
+    margin: 12px 0 8px;
+  }
+
+  .kpi:nth-child(1) .kpi-num { color: var(--accent); }
+  .kpi:nth-child(2) .kpi-num { color: var(--accent2); }
+  .kpi:nth-child(3) .kpi-num { color: var(--accent3); }
+  .kpi:nth-child(4) .kpi-num { color: var(--green); }
+
+  .kpi-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+    max-width: 180px;
+  }
+
+  /* Chart spans */
+  .span-6 { grid-column: span 6; }
+  .span-4 { grid-column: span 4; }
+  .span-8 { grid-column: span 8; }
+  .span-12 { grid-column: span 12; }
+
+  canvas { width: 100% !important; }
+
+  /* Goods grid */
+  .goods-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 8px;
+  }
+
+  .good-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .good-item:hover { border-color: var(--accent); }
+
+  .good-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 1px;
+    color: #fff;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .good-bar-bg {
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .good-bar {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 1s ease;
+  }
+
+  .good-pct {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  /* Profiteering card */
+  .prof-row {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 8px;
+  }
+
+  .prof-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .prof-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text);
+    width: 180px;
+    flex-shrink: 0;
+  }
+
+  .prof-bar-bg {
+    flex: 1;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .prof-bar {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 3px;
+  }
+
+  .prof-pct {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    width: 50px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* Insight boxes */
+  .insight {
+    background: var(--surface2);
+    border-left: 3px solid var(--accent);
+    padding: 20px 24px;
+    margin-top: 24px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--muted);
+  }
+
+  .insight strong { color: var(--accent2); font-weight: 600; }
+
+  footer {
+    padding: 40px 60px;
+    border-top: 1px solid var(--border);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  /* Animate in */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card, .kpi { animation: fadeUp 0.6s ease both; }
+  .kpi:nth-child(2) { animation-delay: 0.1s; }
+  .kpi:nth-child(3) { animation-delay: 0.2s; }
+  .kpi:nth-child(4) { animation-delay: 0.3s; }
+
+  .corr-display {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-top: 16px;
+  }
+
+  .corr-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 80px;
+    color: var(--accent3);
+    line-height: 1;
+  }
+
+  .corr-desc {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.7;
+    max-width: 260px;
+  }
+
+  .corr-desc strong { color: var(--text); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="tag">War Economic Impact Dataset · 100,000 Conflicts</div>
+  <h1>WAR &<br><span>SHADOW</span><br>ECONOMIES</h1>
+  <p class="subtitle">// Mapping the black market ecosystem that emerges when formal economies collapse under armed conflict.</p>
+  <div class="meta-row">
+    <div class="meta-item">
+      <span class="meta-label">Records</span>
+      <span class="meta-value">100,000</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Time Span</span>
+      <span class="meta-value">1939 – 2026</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Regions</span>
+      <span class="meta-value">5</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Conflict Types</span>
+      <span class="meta-value">5</span>
+    </div>
+  </div>
+</header>
+
+<!-- KPI Row -->
+<div class="kpi-row">
+  <div class="kpi">
+    <div class="card-label">Informal economy growth</div>
+    <div class="kpi-num">+26.8<span style="font-size:32px">pp</span></div>
+    <div class="kpi-desc">Average percentage point rise in informal economy size during conflict</div>
+  </div>
+  <div class="kpi">
+    <div class="card-label">War profiteering rate</div>
+    <div class="kpi-num">70<span style="font-size:32px">%</span></div>
+    <div class="kpi-desc">Of all conflicts have documented war profiteering activity</div>
+  </div>
+  <div class="kpi">
+    <div class="card-label">Currency black market gap</div>
+    <div class="kpi-num">126<span style="font-size:32px">%</span></div>
+    <div class="kpi-desc">Average gap between official and black market currency rates</div>
+  </div>
+  <div class="kpi">
+    <div class="card-label">Correlation: BM gap ↔ informal growth</div>
+    <div class="kpi-num">0.60</div>
+    <div class="kpi-desc">Strong link: wider currency gaps predict larger shadow economies</div>
+  </div>
+</div>
+
+<div class="grid">
+
+  <!-- Black Market Activity Distribution -->
+  <div class="card span-6">
+    <div class="card-label">Black market activity level distribution</div>
+    <canvas id="bmLevelChart" height="260"></canvas>
+    <div class="insight">
+      Activity is <strong>remarkably evenly spread</strong> across all four levels (~25% each),
+      suggesting black markets emerge universally in conflict — only their intensity varies.
+    </div>
+  </div>
+
+  <!-- Informal Economy Growth by Region -->
+  <div class="card span-6">
+    <div class="card-label">Informal economy growth by region (avg pp)</div>
+    <canvas id="regionChart" height="260"></canvas>
+    <div class="insight">
+      <strong>East Asia leads</strong> with +26.9pp average informal economy growth,
+      closely followed by Europe. The spread across regions is narrow — war universally drives shadow economies.
+    </div>
+  </div>
+
+  <!-- Currency Black Market Gap by Conflict -->
+  <div class="card span-8">
+    <div class="card-label">Currency black market rate gap — top conflicts (%)</div>
+    <canvas id="conflictChart" height="280"></canvas>
+  </div>
+
+  <!-- Correlation callout -->
+  <div class="card span-4">
+    <div class="card-label">Key statistical finding</div>
+    <div class="corr-display">
+      <div class="corr-num">0.60</div>
+    </div>
+    <p class="corr-desc" style="margin-top:12px">
+      Correlation between <strong>currency black market gap</strong> and <strong>informal economy growth</strong>.<br><br>
+      This is the strongest predictor in the dataset. All other economic indicators (GDP, inflation, food insecurity) show near-zero correlation with shadow economy size.
+    </p>
+    <div class="insight">The currency gap <strong>IS</strong> the shadow economy signal — not poverty, not inflation.</div>
+  </div>
+
+  <!-- Primary Black Market Goods -->
+  <div class="card span-6">
+    <div class="card-label">Primary black market goods traded (all conflicts)</div>
+    <div class="goods-grid">
+      <div class="good-item">
+        <div class="good-name">Water</div>
+        <div class="good-bar-bg"><div class="good-bar" style="width:100%;background:var(--accent3)"></div></div>
+        <div class="good-pct">33,428 conflicts · 16.7%</div>
+      </div>
+      <div class="good-item">
+        <div class="good-name">Medicine</div>
+        <div class="good-bar-bg"><div class="good-bar" style="width:99%;background:var(--accent)"></div></div>
+        <div class="good-pct">33,361 conflicts · 16.7%</div>
+      </div>
+      <div class="good-item">
+        <div class="good-name">Weapons</div>
+        <div class="good-bar-bg"><div class="good-bar" style="width:99%;background:var(--accent2)"></div></div>
+        <div class="good-pct">33,343 conflicts · 16.7%</div>
+      </div>
+      <div class="good-item">
+        <div class="good-name">Fuel</div>
+        <div class="good-bar-bg"><div class="good-bar" style="width:99%;background:var(--green)"></div></div>
+        <div class="good-pct">33,309 conflicts · 16.6%</div>
+      </div>
+      <div class="good-item">
+        <div class="good-name">Food</div>
+        <div class="good-bar-bg"><div class="good-bar" style="width:99%;background:#ff88aa)"></div></div>
+        <div class="good-pct">33,305 conflicts · 16.6%</div>
+      </div>
+      <div class="good-item">
+        <div class="good-name">Currency</div>
+        <div class="good-bar-bg"><div class="good-bar" style="width:98%;background:#aa88ff"></div></div>
+        <div class="good-pct">33,263 conflicts · 16.6%</div>
+      </div>
+    </div>
+    <div class="insight">
+      All 6 categories appear with <strong>near-identical frequency</strong> — black markets in war are comprehensive, not selective. Basic survival goods (water, food, medicine) dominate alongside weapons and currency.
+    </div>
+  </div>
+
+  <!-- War Profiteering by Region -->
+  <div class="card span-6">
+    <div class="card-label">War profiteering documented — by region & conflict type (%)</div>
+    <div class="prof-row" style="margin-top:24px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:2px;margin-bottom:4px">BY REGION</div>
+      <div class="prof-item">
+        <span class="prof-label">South Asia</span>
+        <div class="prof-bar-bg"><div class="prof-bar" style="width:70.6%"></div></div>
+        <span class="prof-pct">70.6%</span>
+      </div>
+      <div class="prof-item">
+        <span class="prof-label">Africa</span>
+        <div class="prof-bar-bg"><div class="prof-bar" style="width:70.4%"></div></div>
+        <span class="prof-pct">70.4%</span>
+      </div>
+      <div class="prof-item">
+        <span class="prof-label">Middle East</span>
+        <div class="prof-bar-bg"><div class="prof-bar" style="width:70.0%"></div></div>
+        <span class="prof-pct">70.0%</span>
+      </div>
+      <div class="prof-item">
+        <span class="prof-label">Europe</span>
+        <div class="prof-bar-bg"><div class="prof-bar" style="width:69.7%"></div></div>
+        <span class="prof-pct">69.7%</span>
+      </div>
+      <div class="prof-item">
+        <span class="prof-label">East Asia</span>
+        <div class="prof-bar-bg"><div class="prof-bar" style="width:68.8%;background:var(--muted)"></div></div>
+        <span class="prof-pct" style="color:var(--muted)">68.8%</span>
+      </div>
+    </div>
+    <div class="prof-row" style="margin-top:24px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:2px;margin-bottom:4px">BY CONFLICT TYPE</div>
+      <div class="prof-item">
+        <span class="prof-label">Interstate/Counter-ins.</span>
+        <div class="prof-bar-bg"><div class="prof-bar" style="width:70.6%"></div></div>
+        <span class="prof-pct">70.6%</span>
+      </div>
+      <div class="prof-item">
+        <span class="prof-label">Interstate War</span>
+        <div class="prof-bar-bg"><div class="prof-bar" style="width:70.3%"></div></div>
+        <span class="prof-pct">70.3%</span>
+      </div>
+      <div class="prof-item">
+        <span class="prof-label">Civil War</span>
+        <div class="prof-bar-bg"><div class="prof-bar" style="width:70.2%"></div></div>
+        <span class="prof-pct">70.2%</span>
+      </div>
+      <div class="prof-item">
+        <span class="prof-label">Asymmetric War</span>
+        <div class="prof-bar-bg"><div class="prof-bar" style="width:69.2%;background:var(--muted)"></div></div>
+        <span class="prof-pct" style="color:var(--muted)">69.2%</span>
+      </div>
+      <div class="prof-item">
+        <span class="prof-label">World War</span>
+        <div class="prof-bar-bg"><div class="prof-bar" style="width:69.1%;background:var(--muted)"></div></div>
+        <span class="prof-pct" style="color:var(--muted)">69.1%</span>
+      </div>
+    </div>
+    <div class="insight">
+      Profiteering is <strong>ubiquitous and uniform</strong> — roughly 70% across every region and conflict type, with almost no variation. War profiteering is a structural phenomenon, not a regional one.
+    </div>
+  </div>
+
+  <!-- Informal Economy: Pre vs During -->
+  <div class="card span-12">
+    <div class="card-label">Informal economy size — pre-war vs during war — by conflict (avg %)</div>
+    <canvas id="informalChart" height="140"></canvas>
+    <div class="insight">
+      The informal economy <strong>approximately doubles</strong> in every single conflict. Russia-Ukraine leads growth (+26.9pp), while the Yemen Civil War shows the smallest jump (+26.7pp) — still a near-doubling from a ~25% baseline to ~52%.
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <span>// War Economic & Livelihood Impact Dataset · Kaggle · 100,000 records · 28 variables</span>
+  <span>Shadow Economy Analysis · 2026</span>
+</footer>
+
+<script>
+const mono = "'IBM Plex Mono', monospace";
+Chart.defaults.color = '#666';
+Chart.defaults.font.family = mono;
+Chart.defaults.font.size = 11;
+
+// 1. BM Activity Level donut
+new Chart(document.getElementById('bmLevelChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['High', 'Low', 'Dominant', 'Moderate'],
+    datasets: [{
+      data: [25377, 24990, 24915, 24718],
+      backgroundColor: ['#ff3b00', '#ffaa00', '#00e5ff', '#00ff88'],
+      borderWidth: 0,
+      hoverOffset: 8
+    }]
+  },
+  options: {
+    responsive: true,
+    cutout: '65%',
+    plugins: {
+      legend: {
+        position: 'right',
+        labels: { padding: 20, usePointStyle: true, pointStyle: 'rect' }
+      },
+      tooltip: {
+        callbacks: {
+          label: (ctx) => ` ${ctx.label}: ${ctx.parsed.toLocaleString()} (${(ctx.parsed/100000*100).toFixed(1)}%)`
+        }
+      }
+    }
+  }
+});
+
+// 2. Region informal economy growth
+new Chart(document.getElementById('regionChart'), {
+  type: 'bar',
+  data: {
+    labels: ['East Asia', 'Europe', 'Middle East', 'South Asia', 'Africa'],
+    datasets: [{
+      label: 'Avg Informal Economy Growth (pp)',
+      data: [26.91, 26.82, 26.79, 26.76, 26.66],
+      backgroundColor: ['#00e5ff','#ff3b00','#ffaa00','#00ff88','#aa88ff'],
+      borderWidth: 0,
+      borderRadius: 2,
+    }]
+  },
+  options: {
+    responsive: true,
+    indexAxis: 'y',
+    plugins: { legend: { display: false } },
+    scales: {
+      x: {
+        grid: { color: '#1a1a1a' },
+        border: { color: '#2a2a2a' },
+        min: 26.4,
+        ticks: { callback: v => v + 'pp' }
+      },
+      y: { grid: { display: false }, border: { color: '#2a2a2a' } }
+    }
+  }
+});
+
+// 3. Currency black market gap by conflict
+new Chart(document.getElementById('conflictChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Russia-Ukraine', 'WWII (Japan)', 'Tigray Conflict', 'Israel-Iran', 'Israel-Hamas', 'WWII (Germany)', 'Iraq War', 'DRC Conflict', 'Yemen', 'Syrian Civil'],
+    datasets: [{
+      label: 'Currency Black Market Gap (%)',
+      data: [128.85, 128.08, 127.22, 126.77, 126.25, 126.22, 125.72, 125.49, 125.08, 125.03],
+      backgroundColor: (ctx) => {
+        const colors = ['#ff3b00','#ff3b00','#ffaa00','#ffaa00','#ffaa00','#00e5ff','#00e5ff','#00ff88','#00ff88','#00ff88'];
+        return colors[ctx.dataIndex];
+      },
+      borderWidth: 0,
+      borderRadius: 2,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { display: false }, border: { color: '#2a2a2a' }, ticks: { maxRotation: 30 } },
+      y: {
+        grid: { color: '#1a1a1a' },
+        border: { color: '#2a2a2a' },
+        min: 124,
+        ticks: { callback: v => v + '%' }
+      }
+    }
+  }
+});
+
+// 4. Informal economy pre vs during
+new Chart(document.getElementById('informalChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Russia-Ukraine', 'WWII (Japan)', 'Israel-Hamas', 'Israel-Iran', 'Iraq War', 'Afghanistan', 'Syrian Civil', 'WWII (Germany)', 'Tigray', 'Yemen'],
+    datasets: [
+      {
+        label: 'Pre-War Informal Economy (%)',
+        data: [25.0, 15.5, 11.95, 25.0, 25.0, 25.0, 38.18, 25.0, 25.0, 25.0],
+        backgroundColor: '#2a2a2a',
+        borderWidth: 0,
+        borderRadius: 2,
+      },
+      {
+        label: 'During-War Informal Economy (%)',
+        data: [51.96, 42.41, 38.71, 51.86, 51.84, 51.76, 64.89, 51.69, 51.68, 51.66],
+        backgroundColor: '#ff3b00',
+        borderWidth: 0,
+        borderRadius: 2,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'top', labels: { usePointStyle: true, pointStyle: 'rect', padding: 20 } }
+    },
+    scales: {
+      x: { grid: { display: false }, border: { color: '#2a2a2a' } },
+      y: {
+        grid: { color: '#1a1a1a' },
+        border: { color: '#2a2a2a' },
+        ticks: { callback: v => v + '%' }
+      }
+    }
+  }
+});
+</script>
+</body>
+</html>
